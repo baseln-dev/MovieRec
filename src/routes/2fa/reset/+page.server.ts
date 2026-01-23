@@ -66,3 +66,4 @@ async function action(event: RequestEvent) {
 	recoveryCodeBucket.reset(event.locals.user.id);
 	return redirect(302, "/2fa/setup");
 }
+
