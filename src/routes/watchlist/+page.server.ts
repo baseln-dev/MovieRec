@@ -1,4 +1,5 @@
 import { getUserWatchlist, removeFromWatchlist } from "$lib/server/watchlist";
+import { getMoviesByIds } from "$lib/server/tmdb";
 import { fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -7,10 +8,22 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(302, "/login");
 	}
 
-	const movieIds = getUserWatchlist(locals.user.id);
+	let watchlistMovies = [];
+	let error = null;
+
+	try {
+		const movieIds = getUserWatchlist(locals.user.id);
+		if (movieIds.length > 0) {
+			watchlistMovies = await getMoviesByIds(movieIds);
+		}
+	} catch (err) {
+		console.error("Failed to fetch watchlist movies:", err);
+		error = "Failed to load watchlist movies";
+	}
 	
 	return {
-		movieIds,
+		watchlistMovies,
+		error,
 		user: locals.user
 	};
 };

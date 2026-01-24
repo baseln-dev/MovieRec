@@ -9,6 +9,11 @@
 		if (!path) return "https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=400&h=600&fit=crop";
 		return `https://image.tmdb.org/t/p/w500${path}`;
 	}
+
+	function formatYear(dateString: string): number | string {
+		if (!dateString) return 'N/A';
+		return new Date(dateString).getFullYear();
+	}
 </script>
 
 <div class="watched-page">
@@ -21,7 +26,11 @@
 		<a href="/discover" class="btn primary">+ Discover movies</a>
 	</header>
 
-	{#if data.movieIds.length === 0}
+	{#if data.error}
+		<section class="error" style="margin-top: 2rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 0.5rem; color: #fca5a5;">
+			{data.error}
+		</section>
+	{:else if data.watchlistMovies.length === 0}
 		<section class="empty" style="margin-top: 4rem; text-align: center;">
 			<p class="empty-title">Your watchlist is empty</p>
 			<p class="empty-subtitle">Browse movies and add them to your watchlist.</p>
@@ -31,31 +40,31 @@
 		<section class="stats">
 			<div class="stat">
 				<p class="stat-label">Movies saved</p>
-				<p class="stat-value">{data.movieIds.length}</p>
+				<p class="stat-value">{data.watchlistMovies.length}</p>
 			</div>
 		</section>
 
 		<section class="grid" aria-live="polite">
-			{#each data.movieIds as movieId}
-				<article class="card" aria-label="Movie {movieId}">
-					<a href="/movie/{movieId}" class="card-poster">
-						<div style="background: rgba(30, 41, 59, 0.6); aspect-ratio: 2/3; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem;">
-							<span style="font-size: 3rem; opacity: 0.3;">🎬</span>
-						</div>
+			{#each data.watchlistMovies as movie}
+				<article class="card">
+					<a href="/movie/{movie.id}" class="card-poster">
+						<img src={getImageUrl(movie.poster_path)} alt={movie.title} style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.5rem;" />
 					</a>
 					<header class="card-head">
 						<div>
-							<h3 class="card-title">Movie #{movieId}</h3>
-							<p class="card-subtitle">
-								<a href="/movie/{movieId}" style="color: #a78bfa;">View Details</a>
-							</p>
+							<h3 class="card-title">
+								<a href="/movie/{movie.id}" style="color: #e2e8f0; text-decoration: none; hover: color: #c7d2e8;">
+									{movie.title}
+								</a>
+							</h3>
+							<p class="card-subtitle">{formatYear(movie.release_date)} · Rating: {movie.vote_average.toFixed(1)}</p>
 						</div>
-						<form method="POST" action="?/remove" use:enhance>
-							<input type="hidden" name="movieId" value={movieId} />
+						<form method="POST" action="?/remove" use:enhance style="margin-top: 0.5rem;">
+							<input type="hidden" name="movieId" value={movie.id} />
 							<button
 								type="submit"
 								class="btn ghost"
-								style="padding: 0.5rem; font-size: 0.875rem;"
+								style="padding: 0.5rem; font-size: 0.875rem; width: 100%;"
 							>
 								Remove
 							</button>

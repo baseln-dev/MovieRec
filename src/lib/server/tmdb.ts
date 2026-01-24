@@ -151,6 +151,39 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
 	}
 }
 
+export async function getMoviesByIds(movieIds: number[]): Promise<Movie[]> {
+	const apiKey = env.TMDB_API_KEY;
+	
+	if (!apiKey) {
+		throw new Error("TMDB_API_KEY is not configured");
+	}
+
+	try {
+		const movies: Movie[] = [];
+		
+		// Fetch all movies in parallel
+		const responses = await Promise.all(
+			movieIds.map(id =>
+				fetch(`${TMDB_BASE_URL}/movie/${id}?api_key=${apiKey}`, {
+					headers: { "Content-Type": "application/json" }
+				})
+			)
+		);
+
+		for (const response of responses) {
+			if (response.ok) {
+				const movie: Movie = await response.json();
+				movies.push(movie);
+			}
+		}
+
+		return movies;
+	} catch (error) {
+		console.error("Error fetching movies by IDs:", error);
+		throw error;
+	}
+}
+
 export function getImageUrl(path: string | null, size: "w500" | "original" = "w500"): string {
 	if (!path) return "/placeholder-movie.jpg";
 	return `https://image.tmdb.org/t/p/${size}${path}`;
