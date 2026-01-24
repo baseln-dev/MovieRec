@@ -1,11 +1,29 @@
 import { fail, redirect } from "@sveltejs/kit";
 import { deleteSessionTokenCookie, invalidateSession } from "$lib/server/session";
+import { getTrendingMovies, getPopularMovies } from "$lib/server/tmdb";
 
 import type { Actions, PageServerLoadEvent, RequestEvent } from "./$types";
 
-export function load(event: PageServerLoadEvent) {
+export async function load(event: PageServerLoadEvent) {
+	let trendingMovies = [];
+	let popularMovies = [];
+	
+	try {
+		trendingMovies = await getTrendingMovies("week");
+	} catch (error) {
+		console.error("Failed to fetch trending movies for homepage:", error);
+	}
+	
+	try {
+		popularMovies = await getPopularMovies();
+	} catch (error) {
+		console.error("Failed to fetch popular movies for homepage:", error);
+	}
+	
 	return {
-		user: event.locals.user
+		user: event.locals.user,
+		trendingMovies,
+		popularMovies
 	};
 }
 

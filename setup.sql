@@ -34,3 +34,12 @@ CREATE TABLE password_reset_session (
     email_verified INTEGER NOT NULL NOT NULL DEFAULT 0,
     two_factor_verified INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE watchlist (
+    user_id INTEGER NOT NULL REFERENCES user(id),
+    movie_id INTEGER NOT NULL,
+    added_at INTEGER NOT NULL,
+    PRIMARY KEY (user_id, movie_id)
+);
+
+CREATE INDEX watchlist_user_index ON watchlist(user_id);
