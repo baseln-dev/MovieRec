@@ -13,7 +13,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const searchQuery = url.searchParams.get("q") || "";
 
 	try {
-		const movieIds = getUserWatchedMovies(locals.user.id);
+		const movieIds = await getUserWatchedMovies(locals.user.id);
 		
 		// Filter by search query on client side with movie titles
 		// (after we get full movie data from TMDB)
@@ -55,7 +55,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			unmarkWatched(locals.user.id, movieId);
+			await unmarkWatched(locals.user.id, movieId);
 			return { success: true };
 		} catch (err) {
 			console.error("Failed to unmark as watched:", err);

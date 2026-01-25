@@ -12,7 +12,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	try {
 		const movie = await getMovieDetails(movieId);
-		const watched = locals.user ? isWatched(locals.user.id, movieId) : false;
+		const watched = locals.user ? await isWatched(locals.user.id, movieId) : false;
 		
 		return {
 			movie,
@@ -37,7 +37,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			markAsWatched(locals.user.id, movieId);
+			await markAsWatched(locals.user.id, movieId);
 			return { success: true };
 		} catch (err) {
 			console.error("Failed to mark as watched:", err);
@@ -56,7 +56,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			unmarkWatched(locals.user.id, movieId);
+			await unmarkWatched(locals.user.id, movieId);
 			return { success: true };
 		} catch (err) {
 			console.error("Failed to unmark as watched:", err);

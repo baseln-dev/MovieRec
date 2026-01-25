@@ -13,10 +13,12 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-node": "^5.5.2",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@tailwindcss/postcss": "^4.1.18",
 		"@types/better-sqlite3": "^7.6.11",
+		"@types/pg": "^8.16.0",
 		"autoprefixer": "^10.4.23",
 		"postcss": "^8.5.6",
 		"prettier": "^3.1.1",
@@ -36,6 +38,7 @@
 		"@oslojs/otp": "^1.0.0",
 		"@pilcrowjs/db-query": "^0.0.2",
 		"better-sqlite3": "^11.3.0",
+		"pg": "^8.17.2",
 		"uqr": "^0.1.2"
 	}
 }

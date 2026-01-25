@@ -6,28 +6,28 @@ export interface WatchedMovie {
 	watchedAt: Date;
 }
 
-export function markAsWatched(userId: number, movieId: number): void {
+export async function markAsWatched(userId: number, movieId: number): Promise<void> {
 	const timestamp = Math.floor(Date.now() / 1000);
-	db.execute(
-		"INSERT OR IGNORE INTO watchlist (user_id, movie_id, added_at) VALUES (?, ?, ?)",
+	await db.execute(
+		"INSERT INTO watchlist (user_id, movie_id, added_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
 		[userId, movieId, timestamp]
 	);
 }
 
-export function unmarkWatched(userId: number, movieId: number): void {
-	db.execute("DELETE FROM watchlist WHERE user_id = ? AND movie_id = ?", [userId, movieId]);
+export async function unmarkWatched(userId: number, movieId: number): Promise<void> {
+	await db.execute("DELETE FROM watchlist WHERE user_id = $1 AND movie_id = $2", [userId, movieId]);
 }
 
-export function isWatched(userId: number, movieId: number): boolean {
-	const row = db.queryOne("SELECT 1 FROM watchlist WHERE user_id = ? AND movie_id = ?", [
+export async function isWatched(userId: number, movieId: number): Promise<boolean> {
+	const row = await db.queryOne("SELECT 1 FROM watchlist WHERE user_id = $1 AND movie_id = $2", [
 		userId,
 		movieId
 	]);
 	return row !== null;
 }
 
-export function getUserWatchedMovies(userId: number): number[] {
-	const rows = db.query("SELECT movie_id FROM watchlist WHERE user_id = ? ORDER BY added_at DESC", [
+export async function getUserWatchedMovies(userId: number): Promise<number[]> {
+	const rows = await db.query("SELECT movie_id FROM watchlist WHERE user_id = $1 ORDER BY added_at DESC", [
 		userId
 	]);
 	const movieIds: number[] = [];
@@ -37,9 +37,9 @@ export function getUserWatchedMovies(userId: number): number[] {
 	return movieIds;
 }
 
-export function getWatchedMoviesWithTimestamps(userId: number): WatchedMovie[] {
-	const rows = db.query(
-		"SELECT user_id, movie_id, added_at FROM watchlist WHERE user_id = ? ORDER BY added_at DESC",
+export async function getWatchedMoviesWithTimestamps(userId: number): Promise<WatchedMovie[]> {
+	const rows = await db.query(
+		"SELECT user_id, movie_id, added_at FROM watchlist WHERE user_id = $1 ORDER BY added_at DESC",
 		[userId]
 	);
 	const items: WatchedMovie[] = [];
@@ -53,12 +53,12 @@ export function getWatchedMoviesWithTimestamps(userId: number): WatchedMovie[] {
 	return items;
 }
 
-export function searchUserWatchedMovies(userId: number, searchQuery: string): number[] {
+export async function searchUserWatchedMovies(userId: number, searchQuery: string): Promise<number[]> {
 	const searchPattern = `%${searchQuery}%`;
-	const rows = db.query(
+	const rows = await db.query(
 		`SELECT DISTINCT w.movie_id 
 		FROM watchlist w 
-		WHERE w.user_id = ? 
+		WHERE w.user_id = $1 
 		ORDER BY w.added_at DESC`,
 		[userId]
 	);
