@@ -15,7 +15,11 @@ const config = {
 			out: 'build',
 			precompress: false,
 			envPrefix: '',
-		})
+		}),
+		// Allow POSTs from a different origin (e.g., when front-end and back-end domains differ)
+		csrf: {
+			checkOrigin: false
+		}
 	}
 };
 
