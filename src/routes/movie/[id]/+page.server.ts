@@ -1,5 +1,5 @@
 import { getMovieDetails } from "$lib/server/tmdb";
-import { isInWatchlist, addToWatchlist, removeFromWatchlist } from "$lib/server/watchlist";
+import { isWatched, markAsWatched, unmarkWatched } from "$lib/server/watchlist";
 import { error, fail, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -12,11 +12,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	try {
 		const movie = await getMovieDetails(movieId);
-		const inWatchlist = locals.user ? isInWatchlist(locals.user.id, movieId) : false;
+		const watched = locals.user ? isWatched(locals.user.id, movieId) : false;
 		
 		return {
 			movie,
-			inWatchlist,
+			watched,
 			user: locals.user
 		};
 	} catch (err) {
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 };
 
 export const actions: Actions = {
-	addToWatchlist: async ({ locals, params }) => {
+	markWatched: async ({ locals, params }) => {
 		if (!locals.user) {
 			return fail(401, { message: "Not authenticated" });
 		}
@@ -37,15 +37,15 @@ export const actions: Actions = {
 		}
 
 		try {
-			addToWatchlist(locals.user.id, movieId);
+			markAsWatched(locals.user.id, movieId);
 			return { success: true };
 		} catch (err) {
-			console.error("Failed to add to watchlist:", err);
-			return fail(500, { message: "Failed to add to watchlist" });
+			console.error("Failed to mark as watched:", err);
+			return fail(500, { message: "Failed to mark as watched" });
 		}
 	},
 
-	removeFromWatchlist: async ({ locals, params }) => {
+	unmarkWatched: async ({ locals, params }) => {
 		if (!locals.user) {
 			return fail(401, { message: "Not authenticated" });
 		}
@@ -56,11 +56,11 @@ export const actions: Actions = {
 		}
 
 		try {
-			removeFromWatchlist(locals.user.id, movieId);
+			unmarkWatched(locals.user.id, movieId);
 			return { success: true };
 		} catch (err) {
-			console.error("Failed to remove from watchlist:", err);
-			return fail(500, { message: "Failed to remove from watchlist" });
+			console.error("Failed to unmark as watched:", err);
+			return fail(500, { message: "Failed to unmark as watched" });
 		}
 	}
 };

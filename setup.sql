@@ -43,3 +43,4 @@ CREATE TABLE watchlist (
 );
 
 CREATE INDEX watchlist_user_index ON watchlist(user_id);
+CREATE INDEX watchlist_movie_index ON watchlist(movie_id);

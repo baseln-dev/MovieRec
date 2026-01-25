@@ -58,16 +58,16 @@
 						class="w-full rounded-lg shadow-2xl"
 					/>
 					
-					<!-- Watchlist Button -->
+					<!-- Mark as Watched Button -->
 					{#if data.user}
-						<form method="POST" action="?/{data.inWatchlist ? 'removeFromWatchlist' : 'addToWatchlist'}" use:enhance class="mt-4">
+						<form method="POST" action="?/{data.watched ? 'unmarkWatched' : 'markWatched'}" use:enhance class="mt-4">
 							<button
 								type="submit"
-								class="w-full py-3 px-4 rounded-lg font-semibold transition duration-200 {data.inWatchlist 
+								class="w-full py-3 px-4 rounded-lg font-semibold transition duration-200 {data.watched 
 									? 'bg-red-600 hover:bg-red-700 text-white' 
 									: 'bg-purple-600 hover:bg-purple-700 text-white'}"
 							>
-								{data.inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+								{data.watched ? "Mark as Unwatched" : "Mark as Watched"}
 							</button>
 						</form>
 					{:else}
@@ -75,7 +75,7 @@
 							href="/login"
 							class="block w-full mt-4 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white text-center rounded-lg font-semibold transition duration-200"
 						>
-							Login to Add to Watchlist
+							Login to Mark as Watched
 						</a>
 					{/if}
 				</div>

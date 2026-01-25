@@ -1,12 +1,24 @@
 <script lang="ts">
 	import '../app.css';
+	import type { PageData } from './$types';
+
+	export let data: PageData;
 
 	const links = [
 		{ href: '/', label: 'Home' },
 		{ href: '/discover', label: 'Discover' },
-		{ href: '/genres', label: 'Genres' },
-		{ href: '/watchlist', label: 'Watchlist' }
+		{ href: '/watched', label: 'My Movies' }
 	];
+
+	let showProfileMenu = false;
+
+	function toggleProfileMenu() {
+		showProfileMenu = !showProfileMenu;
+	}
+
+	function getInitials(username: string): string {
+		return username.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+	}
 </script>
 
 <svelte:head>
@@ -32,7 +44,32 @@
 				placeholder="Search movies"
 				aria-label="Search movies"
 			/>
-			<a class="cta" href="/login">Sign in</a>
+			{#if data.user}
+				<div class="profile-container">
+					<button
+						class="profile-button"
+						on:click={toggleProfileMenu}
+						aria-label="User profile menu"
+						title={data.user.username}
+					>
+						<div class="profile-avatar">
+							{getInitials(data.user.username)}
+						</div>
+					</button>
+					{#if showProfileMenu}
+						<div class="profile-menu">
+							<div class="profile-info">
+								<p class="profile-name">{data.user.username}</p>
+								<p class="profile-email">{data.user.email}</p>
+							</div>
+							<a href="/settings" class="menu-link">Settings</a>
+							<a href="/logout" class="menu-link logout">Sign out</a>
+						</div>
+					{/if}
+				</div>
+			{:else}
+				<a class="cta" href="/login">Sign in</a>
+			{/if}
 		</div>
 	</header>
 
@@ -158,6 +195,103 @@
 		transform: translateY(-1px);
 		box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 		outline: none;
+	}
+
+	.profile-container {
+		position: relative;
+	}
+
+	.profile-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.2rem;
+		height: 2.2rem;
+		border-radius: 50%;
+		border: 2px solid rgba(240, 99, 76, 0.5);
+		background: transparent;
+		cursor: pointer;
+		transition: border-color 0.15s ease, transform 0.15s ease;
+		padding: 0;
+	}
+
+	.profile-button:hover,
+	.profile-button:focus-visible {
+		border-color: #f0634c;
+		transform: scale(1.05);
+		outline: none;
+	}
+
+	.profile-avatar {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #f0634c 0%, #d73b65 100%);
+		color: #0b1021;
+		font-weight: 700;
+		font-size: 0.85rem;
+	}
+
+	.profile-menu {
+		position: absolute;
+		top: 100%;
+		right: 0;
+		margin-top: 0.5rem;
+		min-width: 200px;
+		background: rgba(15, 23, 42, 0.95);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 0.7rem;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+		backdrop-filter: blur(12px);
+		z-index: 100;
+		overflow: hidden;
+	}
+
+	.profile-info {
+		padding: 0.75rem 1rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	}
+
+	.profile-name {
+		margin: 0;
+		color: #e8ecf5;
+		font-weight: 600;
+		font-size: 0.95rem;
+	}
+
+	.profile-email {
+		margin: 0.25rem 0 0;
+		color: #9aa4bd;
+		font-size: 0.85rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.menu-link {
+		display: block;
+		padding: 0.65rem 1rem;
+		color: #c4ccdd;
+		text-decoration: none;
+		transition: background 0.15s ease, color 0.15s ease;
+		border: none;
+	}
+
+	.menu-link:hover {
+		background: rgba(255, 255, 255, 0.08);
+		color: #ffffff;
+	}
+
+	.menu-link.logout {
+		border-top: 1px solid rgba(255, 255, 255, 0.08);
+		color: #f0634c;
+	}
+
+	.menu-link.logout:hover {
+		background: rgba(240, 99, 76, 0.1);
 	}
 
 	.page {

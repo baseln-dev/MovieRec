@@ -158,7 +158,7 @@ body {
 
 .grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
 	gap: 1rem;
 }
 
@@ -311,6 +311,46 @@ body {
 	border: 1px dashed var(--border);
 	border-radius: 1rem;
 	background: rgba(15, 23, 42, 0.5);
+	margin-top: 4rem;
+}
+
+.error {
+	margin-top: 2rem;
+	padding: 1rem;
+	background: rgba(239, 68, 68, 0.1);
+	border: 1px solid rgba(239, 68, 68, 0.3);
+	border-radius: 0.5rem;
+	color: #fca5a5;
+}
+
+.card-poster img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	border-radius: 0.5rem;
+}
+
+.card-title a {
+	color: #e2e8f0;
+	text-decoration: none;
+	transition: color 0.2s ease;
+}
+
+.card-title a:hover {
+	color: #c7d2e8;
+}
+
+.card-head form {
+	margin-top: 0.5rem;
+}
+
+.empty {
+	grid-column: 1 / -1;
+	text-align: center;
+	padding: 2rem 1rem;
+	border: 1px dashed var(--border);
+	border-radius: 1rem;
+	background: rgba(15, 23, 42, 0.5);
 }
 
 .empty-title {
@@ -321,6 +361,58 @@ body {
 .empty-subtitle {
 	margin: 0.4rem 0 1rem;
 	color: var(--muted);
+}
+
+.search-container {
+	display: flex;
+	justify-content: center;
+	gap: 0.5rem;
+	margin-bottom: 2rem;
+}
+
+.search-input {
+	width: 100%;
+	max-width: 500px;
+	padding: 0.75rem 1rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 0.5rem;
+	color: var(--text);
+	font-size: 1rem;
+	font-family: "Inter", system-ui, -apple-system, sans-serif;
+	transition: all 0.2s ease;
+}
+
+.search-input:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+.search-input::placeholder {
+	color: var(--muted);
+}
+
+.search-button {
+	padding: 0.75rem 1.5rem;
+	background: var(--accent);
+	border: none;
+	border-radius: 0.5rem;
+	color: var(--bg);
+	font-size: 1rem;
+	font-weight: 600;
+	font-family: "Inter", system-ui, -apple-system, sans-serif;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.search-button:hover {
+	background: var(--accent-strong);
+	transform: translateY(-2px);
+}
+
+.search-button:active {
+	transform: translateY(0);
 }
 
 @media (max-width: 640px) {

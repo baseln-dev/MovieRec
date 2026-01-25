@@ -1,12 +1,12 @@
 import { fail, redirect } from "@sveltejs/kit";
 import { deleteSessionTokenCookie, invalidateSession } from "$lib/server/session";
-import { getTrendingMovies, getPopularMovies } from "$lib/server/tmdb";
+import { getTrendingMovies, getPopularMovies, type Movie } from "$lib/server/tmdb";
 
 import type { Actions, PageServerLoadEvent, RequestEvent } from "./$types";
 
 export async function load(event: PageServerLoadEvent) {
-	let trendingMovies = [];
-	let popularMovies = [];
+	let trendingMovies: Movie[] = [];
+	let popularMovies: Movie[] = [];
 	
 	try {
 		trendingMovies = await getTrendingMovies("week");
