@@ -32,76 +32,81 @@ export const actions: Actions = {
 };
 
 async function action(event: RequestEvent) {
-	// TODO: Assumes X-Forwarded-For is always included.
-	const clientIP = event.request.headers.get("X-Forwarded-For");
-	if (clientIP !== null && !ipBucket.check(clientIP, 1)) {
-		return fail(429, {
-			message: "Too many requests",
-			email: ""
-		});
-	}
+	try {
+		// TODO: Assumes X-Forwarded-For is always included.
+		const clientIP = event.request.headers.get("X-Forwarded-For");
+		if (clientIP !== null && !ipBucket.check(clientIP, 1)) {
+			return fail(429, {
+				message: "Too many requests",
+				email: ""
+			});
+		}
 
-	const formData = await event.request.formData();
-	const email = formData.get("email");
-	const password = formData.get("password");
-	if (typeof email !== "string" || typeof password !== "string") {
-		return fail(400, {
-			message: "Invalid or missing fields",
-			email: ""
-		});
-	}
-	if (email === "" || password === "") {
-		return fail(400, {
-			message: "Please enter your email and password.",
-			email
-		});
-	}
-	if (!verifyEmailInput(email)) {
-		return fail(400, {
-			message: "Invalid email",
-			email
-		});
-	}
-	const user = await getUserFromEmail(email);
-	if (user === null) {
-		return fail(400, {
-			message: "Account does not exist",
-			email
-		});
-	}
-	if (clientIP !== null && !ipBucket.consume(clientIP, 1)) {
-		return fail(429, {
-			message: "Too many requests",
-			email: ""
-		});
-	}
-	if (!throttler.consume(user.id)) {
-		return fail(429, {
-			message: "Too many requests",
-			email: ""
-		});
-	}
-	const passwordHash = await getUserPasswordHash(user.id);
-	const validPassword = await verifyPasswordHash(passwordHash, password);
-	if (!validPassword) {
-		return fail(400, {
-			message: "Invalid password",
-			email
-		});
-	}
-	throttler.reset(user.id);
-	const sessionFlags: SessionFlags = {
-		twoFactorVerified: false
-	};
-	const sessionToken = generateSessionToken();
-	const session = await createSession(sessionToken, user.id, sessionFlags);
-	setSessionTokenCookie(event, sessionToken, session.expiresAt);
+		const formData = await event.request.formData();
+		const email = formData.get("email");
+		const password = formData.get("password");
+		if (typeof email !== "string" || typeof password !== "string") {
+			return fail(400, {
+				message: "Invalid or missing fields",
+				email: ""
+			});
+		}
+		if (email === "" || password === "") {
+			return fail(400, {
+				message: "Please enter your email and password.",
+				email
+			});
+		}
+		if (!verifyEmailInput(email)) {
+			return fail(400, {
+				message: "Invalid email",
+				email
+			});
+		}
+		const user = await getUserFromEmail(email);
+		if (user === null) {
+			return fail(400, {
+				message: "Account does not exist",
+				email
+			});
+		}
+		if (clientIP !== null && !ipBucket.consume(clientIP, 1)) {
+			return fail(429, {
+				message: "Too many requests",
+				email: ""
+			});
+		}
+		if (!throttler.consume(user.id)) {
+			return fail(429, {
+				message: "Too many requests",
+				email: ""
+			});
+		}
+		const passwordHash = await getUserPasswordHash(user.id);
+		const validPassword = await verifyPasswordHash(passwordHash, password);
+		if (!validPassword) {
+			return fail(400, {
+				message: "Invalid password",
+				email
+			});
+		}
+		throttler.reset(user.id);
+		const sessionFlags: SessionFlags = {
+			twoFactorVerified: false
+		};
+		const sessionToken = generateSessionToken();
+		const session = await createSession(sessionToken, user.id, sessionFlags);
+		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
-	if (!user.emailVerified) {
-		return redirect(302, "/verify-email");
+		if (!user.emailVerified) {
+			return redirect(302, "/verify-email");
+		}
+		if (!user.registered2FA) {
+			return redirect(302, "/2fa/setup");
+		}
+		return redirect(302, "/2fa");
+	} catch (err) {
+		console.error("Login action failed:", err);
+		return fail(500, { message: "Internal error", email: "" });
 	}
-	if (!user.registered2FA) {
-		return redirect(302, "/2fa/setup");
-	}
-	return redirect(302, "/2fa");
 }
