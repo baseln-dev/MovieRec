@@ -5,13 +5,16 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import type { User } from "./user";
 import type { RequestEvent } from "@sveltejs/kit";
 
-export function validateSessionToken(token: string): SessionValidationResult {
+export async function validateSessionToken(token: string): Promise<SessionValidationResult> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const row = db.queryOne(
+	const row = await db.queryOne(
 		`
-SELECT session.id, session.user_id, session.expires_at, session.two_factor_verified, user.id, user.email, user.username, user.email_verified, IIF(user.totp_key IS NOT NULL, 1, 0) FROM session
-INNER JOIN user ON session.user_id = user.id
-WHERE session.id = ?
+SELECT s.id, s.user_id, s.expires_at, s.two_factor_verified,
+       u.id, u.email, u.username, u.email_verified,
+       (u.totp_key IS NOT NULL) AS registered
+FROM session s
+INNER JOIN "user" u ON s.user_id = u.id
+WHERE s.id = $1
 `,
 		[sessionId]
 	);
@@ -33,12 +36,12 @@ WHERE session.id = ?
 		registered2FA: Boolean(row.number(8))
 	};
 	if (Date.now() >= session.expiresAt.getTime()) {
-		db.execute("DELETE FROM session WHERE id = ?", [session.id]);
+		await db.execute("DELETE FROM session WHERE id = $1", [session.id]);
 		return { session: null, user: null };
 	}
 	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
 		session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-		db.execute("UPDATE session SET expires_at = ? WHERE session.id = ?", [
+		await db.execute("UPDATE session SET expires_at = $1 WHERE id = $2", [
 			Math.floor(session.expiresAt.getTime() / 1000),
 			session.id
 		]);
@@ -46,12 +49,12 @@ WHERE session.id = ?
 	return { session, user };
 }
 
-export function invalidateSession(sessionId: string): void {
-	db.execute("DELETE FROM session WHERE id = ?", [sessionId]);
+export async function invalidateSession(sessionId: string): Promise<void> {
+	await db.execute("DELETE FROM session WHERE id = $1", [sessionId]);
 }
 
-export function invalidateUserSessions(userId: number): void {
-	db.execute("DELETE FROM session WHERE user_id = ?", [userId]);
+export async function invalidateUserSessions(userId: number): Promise<void> {
+	await db.execute("DELETE FROM session WHERE user_id = $1", [userId]);
 }
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date): void {
@@ -81,7 +84,7 @@ export function generateSessionToken(): string {
 	return token;
 }
 
-export function createSession(token: string, userId: number, flags: SessionFlags): Session {
+export async function createSession(token: string, userId: number, flags: SessionFlags): Promise<Session> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const session: Session = {
 		id: sessionId,
@@ -89,7 +92,7 @@ export function createSession(token: string, userId: number, flags: SessionFlags
 		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
 		twoFactorVerified: flags.twoFactorVerified
 	};
-	db.execute("INSERT INTO session (id, user_id, expires_at, two_factor_verified) VALUES (?, ?, ?, ?)", [
+	await db.execute("INSERT INTO session (id, user_id, expires_at, two_factor_verified) VALUES ($1, $2, $3, $4)", [
 		session.id,
 		session.userId,
 		Math.floor(session.expiresAt.getTime() / 1000),
@@ -98,8 +101,8 @@ export function createSession(token: string, userId: number, flags: SessionFlags
 	return session;
 }
 
-export function setSessionAs2FAVerified(sessionId: string): void {
-	db.execute("UPDATE session SET two_factor_verified = 1 WHERE id = ?", [sessionId]);
+export async function setSessionAs2FAVerified(sessionId: string): Promise<void> {
+	await db.execute("UPDATE session SET two_factor_verified = 1 WHERE id = $1", [sessionId]);
 }
 
 export interface SessionFlags {

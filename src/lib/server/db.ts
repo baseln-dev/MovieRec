@@ -22,15 +22,33 @@ class DatabaseRow {
 		const keys = Object.keys(this.data);
 		return Number(this.data[keys[index]]);
 	}
+
+	numberNullable(index: number): number | null {
+		const keys = Object.keys(this.data);
+		const v = this.data[keys[index]];
+		return v === null || v === undefined ? null : Number(v);
+	}
 	
 	string(index: number): string {
 		const keys = Object.keys(this.data);
 		return String(this.data[keys[index]]);
 	}
+
+	stringNullable(index: number): string | null {
+		const keys = Object.keys(this.data);
+		const v = this.data[keys[index]];
+		return v === null || v === undefined ? null : String(v);
+	}
 	
 	bytes(index: number): Uint8Array {
 		const keys = Object.keys(this.data);
 		return this.data[keys[index]];
+	}
+
+	bytesNullable(index: number): Uint8Array | null {
+		const keys = Object.keys(this.data);
+		const v = this.data[keys[index]];
+		return v === null || v === undefined ? null : v;
 	}
 }
 
