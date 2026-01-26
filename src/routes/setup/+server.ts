@@ -1,14 +1,15 @@
 import { db } from "$lib/server/db";
 import fs from "fs";
 import path from "path";
+import type { RequestHandler } from "./$types";
 
-async function initializeDatabase() {
+export const GET: RequestHandler = async () => {
 	try {
 		const sqlPath = path.join(process.cwd(), "setup.sql");
 		console.log("Looking for SQL file at:", sqlPath);
 		
 		if (!fs.existsSync(sqlPath)) {
-			throw new Error(`setup.sql not found at ${sqlPath}`);
+			return new Response(`Error: setup.sql not found at ${sqlPath}`, { status: 500 });
 		}
 		
 		const sql = fs.readFileSync(sqlPath, "utf-8");
@@ -27,20 +28,10 @@ async function initializeDatabase() {
 		}
 		
 		console.log("Database initialization completed successfully");
-		return { success: true, message: "Database initialized successfully!" };
-	} catch (error) {
-		console.error("Database initialization failed:", error);
-		throw error;
-	}
-}
-
-export async function GET() {
-	try {
-		const result = await initializeDatabase();
-		return new Response(result.message, { status: 200 });
+		return new Response("Database initialized successfully!", { status: 200 });
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		console.error("Setup endpoint error:", message);
 		return new Response(`Error: ${message}`, { status: 500 });
 	}
-}
+};
