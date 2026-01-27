@@ -97,7 +97,7 @@ export async function load(event: PageServerLoadEvent) {
 						if (b.score !== a.score) return b.score - a.score;
 						return b.movie.popularity - a.movie.popularity;
 					})
-					.slice(0, 10)
+				.slice(0, 7)
 					.map(item => item.movie);
 			}
 		} catch (error) {
@@ -106,13 +106,13 @@ export async function load(event: PageServerLoadEvent) {
 	}
 	
 	try {
-		trendingMovies = await getTrendingMovies("week");
+		trendingMovies = (await getTrendingMovies("week")).slice(0, 7);
 	} catch (error) {
 		console.error("Failed to fetch trending movies for homepage:", error);
 	}
 	
 	try {
-		popularMovies = await getPopularMovies();
+		popularMovies = (await getPopularMovies()).slice(0, 7);
 	} catch (error) {
 		console.error("Failed to fetch popular movies for homepage:", error);
 	}

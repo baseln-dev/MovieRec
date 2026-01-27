@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-	import "../home.css";
+	import "../discover/discover.css";
 
 	export let data: PageData;
 
@@ -19,7 +19,7 @@
 	<title>Recommendations - MovieRec</title>
 </svelte:head>
 
-<div class="page">
+<div class="discover-page">
 	<header class="page-header">
 		<div class="titles">
 			<p class="eyebrow">Personalized</p>

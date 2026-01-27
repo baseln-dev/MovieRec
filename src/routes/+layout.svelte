@@ -12,15 +12,24 @@
 	];
 
 	let showProfileMenu = false;
+	let profileContainer: HTMLDivElement;
 
 	function toggleProfileMenu() {
 		showProfileMenu = !showProfileMenu;
+	}
+
+	function handleClickOutside(event: MouseEvent) {
+		if (profileContainer && !profileContainer.contains(event.target as Node)) {
+			showProfileMenu = false;
+		}
 	}
 
 	function getInitials(username: string): string {
 		return username.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 	}
 </script>
+
+<svelte:window on:click={handleClickOutside} />
 
 <svelte:head>
 	<link rel="icon" href="/favicon.png" />
@@ -46,7 +55,7 @@
 				aria-label="Search movies"
 			/>
 			{#if data.user}
-				<div class="profile-container">
+				<div class="profile-container" bind:this={profileContainer}>
 					<button
 						class="profile-button"
 						on:click={toggleProfileMenu}
@@ -63,8 +72,8 @@
 								<p class="profile-name">{data.user.username}</p>
 								<p class="profile-email">{data.user.email}</p>
 							</div>
-							<a href="/settings" class="menu-link">Settings</a>
-							<a href="/logout" class="menu-link logout">Sign out</a>
+							<a href="/settings" class="menu-link" on:click={() => (showProfileMenu = false)}>Settings</a>
+							<a href="/logout" class="menu-link logout" on:click={() => (showProfileMenu = false)}>Sign out</a>
 						</div>
 					{/if}
 				</div>
@@ -296,9 +305,9 @@
 	}
 
 	.page {
-		padding: 2rem 1.5rem 3rem;
-		max-width: 1080px;
-		margin: 0 auto;
+		padding: 0;
+		width: 100%;
+		margin: 0;
 	}
 
 	@media (max-width: 720px) {
