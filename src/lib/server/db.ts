@@ -3,11 +3,20 @@ import pg from "pg";
 const { Pool } = pg;
 
 // Use environment variable for database URL
-const connectionString = process.env.DATABASE_URL || "postgresql://localhost:5432/movierec";
+const isProd = process.env.NODE_ENV === "production";
+const connectionString = process.env.DATABASE_URL ?? (isProd ? "" : "postgresql://localhost:5432/movierec");
+
+if (isProd && !process.env.DATABASE_URL) {
+	console.error("DATABASE_URL is not set. Configure the Render web service with the Internal Database URL.");
+}
+
+if (!connectionString) {
+	throw new Error("Missing DATABASE_URL. Set it in environment variables.");
+}
 
 const pool = new Pool({
 	connectionString,
-	ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
+	ssl: isProd ? { rejectUnauthorized: false } : false
 });
 
 // Wrapper to match SQLite-style API
