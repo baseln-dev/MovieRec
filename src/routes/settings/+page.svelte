@@ -5,6 +5,9 @@
 
 	export let data: PageData;
 	export let form: ActionData;
+
+	let showCurrent = false;
+	let showNew = false;
 </script>
 
 <header>
@@ -27,15 +30,17 @@
 		<h2>Update password</h2>
 		<form method="post" use:enhance action="?/password">
 			<label for="form-password.password">Current password</label>
-			<input type="password" id="form-email.password" name="password" autocomplete="current-password" required /><br />
+			<input type={showCurrent ? "text" : "password"} id="form-email.password" name="password" autocomplete="current-password" required />
+			<button type="button" on:click={() => (showCurrent = !showCurrent)}>{showCurrent ? "Hide" : "Show"}</button><br />
 			<label for="form-password.new-password">New password</label>
 			<input
-				type="password"
+				type={showNew ? "text" : "password"}
 				id="form-password.new-password"
 				name="new_password"
 				autocomplete="new-password"
 				required
-			/><br />
+			/>
+			<button type="button" on:click={() => (showNew = !showNew)}>{showNew ? "Hide" : "Show"}</button><br />
 			<button>Update</button>
 			<p>{form?.password?.message ?? ""}</p>
 		</form>
