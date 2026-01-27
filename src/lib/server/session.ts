@@ -9,9 +9,16 @@ export async function validateSessionToken(token: string): Promise<SessionValida
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const row = await db.queryOne(
 		`
-SELECT s.id, s.user_id, s.expires_at, s.two_factor_verified,
-       u.id, u.email, u.username, u.email_verified,
-       (u.totp_key IS NOT NULL) AS registered
+SELECT
+  s.id AS session_id,
+  s.user_id AS session_user_id,
+  s.expires_at AS session_expires_at,
+  s.two_factor_verified AS session_two_factor_verified,
+  u.id AS user_id,
+  u.email,
+  u.username,
+  u.email_verified,
+  (u.totp_key IS NOT NULL) AS registered
 FROM session s
 INNER JOIN "user" u ON s.user_id = u.id
 WHERE s.id = $1

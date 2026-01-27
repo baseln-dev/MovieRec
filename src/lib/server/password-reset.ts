@@ -31,8 +31,19 @@ export async function createPasswordResetSession(
 export async function validatePasswordResetSessionToken(token: string): Promise<PasswordResetSessionValidationResult> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 	const row = await db.queryOne(
-		`SELECT prs.id, prs.user_id, prs.email, prs.code, prs.expires_at, prs.email_verified, prs.two_factor_verified,
-u.id, u.email, u.username, u.email_verified, (u.totp_key IS NOT NULL) AS registered
+		`SELECT
+  prs.id AS reset_id,
+  prs.user_id AS reset_user_id,
+  prs.email AS reset_email,
+  prs.code AS reset_code,
+  prs.expires_at AS reset_expires_at,
+  prs.email_verified AS reset_email_verified,
+  prs.two_factor_verified AS reset_two_factor_verified,
+  u.id AS user_id,
+  u.email AS user_email,
+  u.username,
+  u.email_verified,
+  (u.totp_key IS NOT NULL) AS registered
 FROM password_reset_session prs INNER JOIN "user" u ON u.id = prs.user_id
 WHERE prs.id = $1`,
 		[sessionId]
