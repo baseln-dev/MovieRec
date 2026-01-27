@@ -63,7 +63,15 @@
 		<section class="stats">
 			<div class="stat">
 				<p class="stat-label">Movies watched</p>
-				<p class="stat-value">{data.watchedMovies.length}</p>
+				<p class="stat-value">{data.stats.moviesWatched}</p>
+			</div>
+			<div class="stat">
+				<p class="stat-label">Hours watched</p>
+				<p class="stat-value">{data.stats.hoursWatched}h {data.stats.minutesWatched}m</p>
+			</div>
+			<div class="stat">
+				<p class="stat-label">Favorite genre</p>
+				<p class="stat-value">{data.stats.favoriteGenre}</p>
 			</div>
 		</section>
 
