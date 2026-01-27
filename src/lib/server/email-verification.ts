@@ -2,8 +2,11 @@ import { generateRandomOTP } from "./utils";
 import { db } from "./db";
 import { ExpiringTokenBucket } from "./rate-limit";
 import { encodeBase32 } from "@oslojs/encoding";
+import { Resend } from "resend";
 
 import type { RequestEvent } from "@sveltejs/kit";
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function getUserEmailVerificationRequest(
 	userId: number,
@@ -57,8 +60,31 @@ export async function deleteUserEmailVerificationRequest(userId: number): Promis
 }
 
 export async function sendVerificationEmail(email: string, code: string): Promise<void> {
-	const { sendVerificationEmail: send } = await import("./email-sender");
-	await send(email, code);
+	if (!resend) {
+		console.log(`[TEST] Verification code for ${email}: ${code}`);
+		return;
+	}
+
+	try {
+		await resend.emails.send({
+			from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+			to: email,
+			subject: "Verify your email",
+			html: `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+					<h2>Verify your email</h2>
+					<p>Your verification code is:</p>
+					<div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+						<code style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${code}</code>
+					</div>
+					<p>This code expires in 10 minutes.</p>
+					<p>If you didn't request this, you can ignore this email.</p>
+				</div>
+			`
+		});
+	} catch (err) {
+		console.error("Failed to send verification email:", err);
+	}
 }
 
 export function setEmailVerificationRequestCookie(event: RequestEvent, request: EmailVerificationRequest): void {

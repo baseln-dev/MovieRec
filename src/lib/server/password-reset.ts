@@ -2,9 +2,12 @@ import { db } from "./db";
 import { encodeHexLowerCase } from "@oslojs/encoding";
 import { generateRandomOTP } from "./utils";
 import { sha256 } from "@oslojs/crypto/sha2";
+import { Resend } from "resend";
 
 import type { RequestEvent } from "@sveltejs/kit";
 import type { User } from "./user";
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 export async function createPasswordResetSession(
 	token: string,
@@ -121,8 +124,31 @@ export function deletePasswordResetSessionTokenCookie(event: RequestEvent): void
 }
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
-	const { sendPasswordResetEmail: send } = await import("./email-sender");
-	await send(email, code);
+	if (!resend) {
+		console.log(`[TEST] Password reset code for ${email}: ${code}`);
+		return;
+	}
+
+	try {
+		await resend.emails.send({
+			from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+			to: email,
+			subject: "Reset your password",
+			html: `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+					<h2>Reset your password</h2>
+					<p>Your password reset code is:</p>
+					<div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+						<code style="font-size: 24px; font-weight: bold; letter-spacing: 2px;">${code}</code>
+					</div>
+					<p>This code expires in 10 minutes.</p>
+					<p>If you didn't request this, you can ignore this email.</p>
+				</div>
+			`
+		});
+	} catch (err) {
+		console.error("Failed to send password reset email:", err);
+	}
 }
 
 export interface PasswordResetSession {

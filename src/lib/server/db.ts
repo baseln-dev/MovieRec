@@ -6,6 +6,9 @@ const { Pool } = pg;
 const isProd = process.env.NODE_ENV === "production";
 const connectionString = process.env.DATABASE_URL ?? (isProd ? "" : "postgresql://localhost:5432/movierec");
 
+console.log("DATABASE_URL:", process.env.DATABASE_URL ? "SET" : "NOT SET");
+console.log("Connection string:", connectionString?.substring(0, 30) + "...");
+
 if (isProd && !process.env.DATABASE_URL) {
 	console.error("DATABASE_URL is not set. Configure the Render web service with the Internal Database URL.");
 }
@@ -14,10 +17,17 @@ if (!connectionString) {
 	throw new Error("Missing DATABASE_URL. Set it in environment variables.");
 }
 
-const pool = new Pool({
-	connectionString,
-	ssl: isProd ? { rejectUnauthorized: false } : false
-});
+let pool: pg.Pool | null = null;
+
+function getPool(): pg.Pool {
+	if (!pool) {
+		pool = new Pool({
+			connectionString,
+			ssl: connectionString?.includes('render.com') ? { rejectUnauthorized: false } : false
+		});
+	}
+	return pool;
+}
 
 // Wrapper to match SQLite-style API
 class DatabaseRow {
@@ -63,17 +73,17 @@ class DatabaseRow {
 
 export const db = {
 	query: async (sql: string, params: unknown[] = []): Promise<DatabaseRow[]> => {
-		const result = await pool.query(sql, params);
+		const result = await getPool().query(sql, params);
 		return result.rows.map(row => new DatabaseRow(row));
 	},
 	
 	queryOne: async (sql: string, params: unknown[] = []): Promise<DatabaseRow | null> => {
-		const result = await pool.query(sql, params);
+		const result = await getPool().query(sql, params);
 		return result.rows.length > 0 ? new DatabaseRow(result.rows[0]) : null;
 	},
 	
 	execute: async (sql: string, params: unknown[] = []): Promise<{ changes: number }> => {
-		const result = await pool.query(sql, params);
+		const result = await getPool().query(sql, params);
 		return { changes: result.rowCount || 0 };
 	}
 };

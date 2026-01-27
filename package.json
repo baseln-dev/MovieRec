@@ -15,6 +15,7 @@
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@types/better-sqlite3": "^7.6.11",
 		"@types/pg": "^8.16.0",
+		"dotenv": "^17.2.3",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
 		"svelte-check": "^4.0.0",
