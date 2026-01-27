@@ -12,12 +12,19 @@
 		if (searchQuery.trim()) {
 			await goto(`?q=${encodeURIComponent(searchQuery)}`);
 		} else {
-			await goto("");
+			await goto("?");
 		}
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === "Enter") {
+			handleSearch();
+		}
+	}
+
+	function handleInput() {
+		// Reset to show all movies when search is cleared
+		if (!searchQuery.trim()) {
 			handleSearch();
 		}
 	}
@@ -67,6 +74,7 @@
 				class="search-input"
 				bind:value={searchQuery}
 				on:keydown={handleKeydown}
+				on:input={handleInput}
 				aria-label="Search watched movies"
 			/>
 			<button class="search-button" on:click={handleSearch}>Search</button>

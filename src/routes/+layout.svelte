@@ -7,6 +7,7 @@
 	const links = [
 		{ href: '/', label: 'Home' },
 		{ href: '/discover', label: 'Discover' },
+		{ href: '/recommendations', label: 'For You' },
 		{ href: '/watched', label: 'My Movies' }
 	];
 

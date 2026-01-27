@@ -77,7 +77,7 @@ export async function getTrendingMovies(timeWindow: "day" | "week" = "week"): Pr
 		}
 
 		const data: TMDBResponse = await response.json();
-		return data.results.slice(0, 10); // Return top 10 movies
+		return data.results; // Return all available results
 	} catch (error) {
 		console.error("Error fetching trending movies:", error);
 		throw error;
@@ -187,4 +187,90 @@ export async function getMoviesByIds(movieIds: number[]): Promise<Movie[]> {
 export function getImageUrl(path: string | null, size: "w500" | "original" = "w500"): string {
 	if (!path) return "/placeholder-movie.jpg";
 	return `https://image.tmdb.org/t/p/${size}${path}`;
+}
+
+export async function getSimilarMovies(movieId: number, page: number = 1): Promise<Movie[]> {
+	const apiKey = env.TMDB_API_KEY;
+	
+	if (!apiKey) {
+		throw new Error("TMDB_API_KEY is not configured");
+	}
+
+	try {
+		const response = await fetch(
+			`${TMDB_BASE_URL}/movie/${movieId}/similar?api_key=${apiKey}&page=${page}`,
+			{
+				headers: { "Content-Type": "application/json" }
+			}
+		);
+
+		if (!response.ok) {
+			return [];
+		}
+
+		const data: TMDBResponse = await response.json();
+		return data.results;
+	} catch (error) {
+		console.error("Error fetching similar movies:", error);
+		return [];
+	}
+}
+
+export async function getMovieRecommendations(movieId: number, page: number = 1): Promise<Movie[]> {
+	const apiKey = env.TMDB_API_KEY;
+	
+	if (!apiKey) {
+		throw new Error("TMDB_API_KEY is not configured");
+	}
+
+	try {
+		const response = await fetch(
+			`${TMDB_BASE_URL}/movie/${movieId}/recommendations?api_key=${apiKey}&page=${page}`,
+			{
+				headers: { "Content-Type": "application/json" }
+			}
+		);
+
+		if (!response.ok) {
+			return [];
+		}
+
+		const data: TMDBResponse = await response.json();
+		return data.results;
+	} catch (error) {
+		console.error("Error fetching movie recommendations:", error);
+		return [];
+	}
+}
+
+export async function discoverMoviesByGenres(genreIds: number[], page: number = 1): Promise<Movie[]> {
+	const apiKey = env.TMDB_API_KEY;
+	
+	if (!apiKey) {
+		throw new Error("TMDB_API_KEY is not configured");
+	}
+
+	if (genreIds.length === 0) {
+		return [];
+	}
+
+	try {
+		const genreString = genreIds.join(',');
+		const response = await fetch(
+			`${TMDB_BASE_URL}/discover/movie?api_key=${apiKey}&with_genres=${genreString}&sort_by=popularity.desc&page=${page}`,
+			{
+				headers: { "Content-Type": "application/json" }
+			}
+		);
+
+		if (!response.ok) {
+			return [];
+		}
+
+		const data: TMDBResponse = await response.json();
+		return data.results;
+	} catch (error) {
+		console.error("Error discovering movies by genres:", error);
+		return [];
+	}
 }
