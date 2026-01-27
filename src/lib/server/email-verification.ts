@@ -56,8 +56,9 @@ export async function deleteUserEmailVerificationRequest(userId: number): Promis
 	await db.execute("DELETE FROM email_verification_request WHERE user_id = $1", [userId]);
 }
 
-export function sendVerificationEmail(email: string, code: string): void {
-	console.log(`To ${email}: Your verification code is ${code}`);
+export async function sendVerificationEmail(email: string, code: string): Promise<void> {
+	const { sendVerificationEmail: send } = await import("./email-sender");
+	await send(email, code);
 }
 
 export function setEmailVerificationRequestCookie(event: RequestEvent, request: EmailVerificationRequest): void {

@@ -181,7 +181,7 @@ async function updateEmailAction(event: RequestEvent) {
 		});
 	}
 	const verificationRequest = await createEmailVerificationRequest(event.locals.user.id, email);
-	sendVerificationEmail(verificationRequest.email, verificationRequest.code);
+	await sendVerificationEmail(verificationRequest.email, verificationRequest.code);
 	setEmailVerificationRequestCookie(event, verificationRequest);
 	return redirect(302, "/verify-email");
 }

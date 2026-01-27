@@ -120,8 +120,9 @@ export function deletePasswordResetSessionTokenCookie(event: RequestEvent): void
 	});
 }
 
-export function sendPasswordResetEmail(email: string, code: string): void {
-	console.log(`To ${email}: Your reset code is ${code}`);
+export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
+	const { sendPasswordResetEmail: send } = await import("./email-sender");
+	await send(email, code);
 }
 
 export interface PasswordResetSession {

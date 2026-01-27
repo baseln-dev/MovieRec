@@ -25,7 +25,7 @@ export async function load(event: RequestEvent) {
 		}
 		// Note: We don't need rate limiting since it takes time before requests expire
 		verificationRequest = await createEmailVerificationRequest(event.locals.user.id, event.locals.user.email);
-		sendVerificationEmail(verificationRequest.email, verificationRequest.code);
+		await sendVerificationEmail(verificationRequest.email, verificationRequest.code);
 		setEmailVerificationRequestCookie(event, verificationRequest);
 	}
 	return {
@@ -96,7 +96,7 @@ async function verifyCode(event: RequestEvent) {
 	}
 	if (Date.now() >= verificationRequest.expiresAt.getTime()) {
 		verificationRequest = await createEmailVerificationRequest(verificationRequest.userId, verificationRequest.email);
-		sendVerificationEmail(verificationRequest.email, verificationRequest.code);
+		await sendVerificationEmail(verificationRequest.email, verificationRequest.code);
 		return {
 			verify: {
 				message: "The verification code was expired. We sent another code to your inbox."
@@ -170,7 +170,7 @@ async function resendEmail(event: RequestEvent) {
 		}
 		verificationRequest = await createEmailVerificationRequest(event.locals.user.id, verificationRequest.email);
 	}
-	sendVerificationEmail(verificationRequest.email, verificationRequest.code);
+	await sendVerificationEmail(verificationRequest.email, verificationRequest.code);
 	setEmailVerificationRequestCookie(event, verificationRequest);
 	return {
 		resend: {
