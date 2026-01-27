@@ -106,6 +106,10 @@ async function action(event: RequestEvent) {
 		}
 		return redirect(302, "/2fa");
 	} catch (err) {
+		// Re-throw redirect errors - they're not actually errors
+		if (err && typeof err === 'object' && 'status' in err && 'location' in err) {
+			throw err;
+		}
 		console.error("Login action failed:", err);
 		return fail(500, { message: "Internal error", email: "" });
 	}

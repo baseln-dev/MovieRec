@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { enhance } from "$app/forms";
 	import type { ActionData } from "./$types";
 
 	export let form: ActionData;
@@ -15,7 +16,7 @@
 		<div class="bg-slate-800/50 backdrop-blur-md rounded-lg shadow-2xl p-8 border border-slate-700">
 			<h1 class="text-3xl font-bold text-white mb-8 text-center">Sign in</h1>
 			
-			<form method="post" class="space-y-6">
+			<form method="post" use:enhance class="space-y-6">
 				<div>
 					<label for="form-login.email" class="block text-sm font-medium text-slate-300 mb-2">Email</label>
 					<input
