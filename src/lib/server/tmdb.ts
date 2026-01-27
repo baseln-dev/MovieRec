@@ -38,6 +38,21 @@ export interface Review {
 	updated_at: string;
 }
 
+export interface CastMember {
+	id: number;
+	name: string;
+	character: string;
+	profile_path: string | null;
+}
+
+export interface CrewMember {
+	id: number;
+	name: string;
+	job: string;
+	department: string;
+	profile_path: string | null;
+}
+
 export interface MovieDetails extends Movie {
 	genres: Genre[];
 	runtime: number | null;
@@ -46,6 +61,9 @@ export interface MovieDetails extends Movie {
 	budget: number;
 	revenue: number;
 	reviews?: Review[];
+	cast?: CastMember[];
+	crew?: CrewMember[];
+	age_rating?: string;
 }
 
 interface TMDBResponse {
@@ -114,41 +132,75 @@ export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
 }
 
 export async function getMovieDetails(movieId: number): Promise<MovieDetails> {
-	const apiKey = env.TMDB_API_KEY;
-	
-	if (!apiKey) {
-		throw new Error("TMDB_API_KEY is not configured");
-	}
+       const apiKey = env.TMDB_API_KEY;
+       if (!apiKey) {
+	       throw new Error("TMDB_API_KEY is not configured");
+       }
+       try {
+	       // Fetch details, reviews, credits, and release info in parallel
+	       const [detailsResponse, reviewsResponse, creditsResponse, releaseResponse] = await Promise.all([
+		       fetch(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}`, {
+			       headers: { "Content-Type": "application/json" }
+		       }),
+		       fetch(`${TMDB_BASE_URL}/movie/${movieId}/reviews?api_key=${apiKey}`, {
+			       headers: { "Content-Type": "application/json" }
+		       }),
+		       fetch(`${TMDB_BASE_URL}/movie/${movieId}/credits?api_key=${apiKey}`, {
+			       headers: { "Content-Type": "application/json" }
+		       }),
+		       fetch(`${TMDB_BASE_URL}/movie/${movieId}/release_dates?api_key=${apiKey}`, {
+			       headers: { "Content-Type": "application/json" }
+		       })
+	       ]);
 
-	try {
-		// Fetch movie details and reviews in parallel
-		const [detailsResponse, reviewsResponse] = await Promise.all([
-			fetch(`${TMDB_BASE_URL}/movie/${movieId}?api_key=${apiKey}`, {
-				headers: { "Content-Type": "application/json" }
-			}),
-			fetch(`${TMDB_BASE_URL}/movie/${movieId}/reviews?api_key=${apiKey}`, {
-				headers: { "Content-Type": "application/json" }
-			})
-		]);
+	       if (!detailsResponse.ok) {
+		       throw new Error(`TMDB API error: ${detailsResponse.status} ${detailsResponse.statusText}`);
+	       }
 
-		if (!detailsResponse.ok) {
-			throw new Error(`TMDB API error: ${detailsResponse.status} ${detailsResponse.statusText}`);
-		}
+	       const details: MovieDetails = await detailsResponse.json();
 
-		const details: MovieDetails = await detailsResponse.json();
-		
-		if (reviewsResponse.ok) {
-			const reviewsData = await reviewsResponse.json();
-			details.reviews = reviewsData.results.slice(0, 5); // Get top 5 reviews
-		} else {
-			details.reviews = [];
-		}
+	       // Reviews
+	       if (reviewsResponse.ok) {
+		       const reviewsData = await reviewsResponse.json();
+		       details.reviews = reviewsData.results.slice(0, 5);
+	       } else {
+		       details.reviews = [];
+	       }
 
-		return details;
-	} catch (error) {
-		console.error("Error fetching movie details:", error);
-		throw error;
-	}
+	       // Credits
+	       if (creditsResponse.ok) {
+		       const creditsData = await creditsResponse.json();
+		       details.cast = creditsData.cast?.slice(0, 8) || [];
+		       details.crew = creditsData.crew?.filter((c: any) => ["Director", "Writer", "Screenplay"].includes(c.job)).slice(0, 6) || [];
+	       } else {
+		       details.cast = [];
+		       details.crew = [];
+	       }
+
+	       // Age rating (certification)
+	       details.age_rating = undefined;
+	       if (releaseResponse.ok) {
+		       const releaseData = await releaseResponse.json();
+		       // Try to find US or GB certification, fallback to any
+		       let found = null;
+		       if (releaseData.results) {
+			       found = releaseData.results.find((r: any) => r.iso_3166_1 === "US")
+				       || releaseData.results.find((r: any) => r.iso_3166_1 === "GB")
+				       || releaseData.results[0];
+			       if (found && found.release_dates && found.release_dates.length > 0) {
+				       const cert = found.release_dates.find((rd: any) => rd.certification);
+				       if (cert && cert.certification) {
+					       details.age_rating = cert.certification;
+				       }
+			       }
+		       }
+	       }
+
+	       return details;
+       } catch (error) {
+	       console.error("Error fetching movie details:", error);
+	       throw error;
+       }
 }
 
 export async function getMoviesByIds(movieIds: number[]): Promise<Movie[]> {
