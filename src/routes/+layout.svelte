@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import { goto } from '$app/navigation';
 	import type { PageData } from './$types';
 
 	export let data: PageData;
@@ -13,6 +14,7 @@
 
 	let showProfileMenu = false;
 	let profileContainer: HTMLDivElement;
+	let searchQuery = '';
 
 	function toggleProfileMenu() {
 		showProfileMenu = !showProfileMenu;
@@ -21,6 +23,12 @@
 	function handleClickOutside(event: MouseEvent) {
 		if (profileContainer && !profileContainer.contains(event.target as Node)) {
 			showProfileMenu = false;
+		}
+	}
+
+	function handleSearch(event: KeyboardEvent) {
+		if (event.key === 'Enter' && searchQuery.trim()) {
+			goto(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
 		}
 	}
 
@@ -53,6 +61,8 @@
 				name="movie-search"
 				placeholder="Search movies"
 				aria-label="Search movies"
+				bind:value={searchQuery}
+				on:keydown={handleSearch}
 			/>
 			{#if data.user}
 				<div class="profile-container" bind:this={profileContainer}>

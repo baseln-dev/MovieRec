@@ -326,3 +326,38 @@ export async function discoverMoviesByGenres(genreIds: number[], page: number = 
 		return [];
 	}
 }
+
+export async function searchMovies(query: string, page: number = 1): Promise<{ results: Movie[]; total_pages: number; total_results: number }> {
+	const apiKey = env.TMDB_API_KEY;
+	
+	if (!apiKey) {
+		throw new Error("TMDB_API_KEY is not configured");
+	}
+
+	if (!query.trim()) {
+		return { results: [], total_pages: 0, total_results: 0 };
+	}
+
+	try {
+		const response = await fetch(
+			`${TMDB_BASE_URL}/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&page=${page}`,
+			{
+				headers: { "Content-Type": "application/json" }
+			}
+		);
+
+		if (!response.ok) {
+			return { results: [], total_pages: 0, total_results: 0 };
+		}
+
+		const data: TMDBResponse = await response.json();
+		return {
+			results: data.results,
+			total_pages: data.total_pages,
+			total_results: data.total_results
+		};
+	} catch (error) {
+		console.error("Error searching movies:", error);
+		return { results: [], total_pages: 0, total_results: 0 };
+	}
+}

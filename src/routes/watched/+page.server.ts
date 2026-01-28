@@ -8,7 +8,7 @@ interface Stats {
 	hoursWatched: number;	minutesWatched: number;	favoriteGenre: string;
 }
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
 		throw redirect(302, "/login");
 	}
@@ -19,21 +19,18 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		moviesWatched: 0,
 		hoursWatched: 0,		minutesWatched: 0,		favoriteGenre: "N/A"
 	};
-	const searchQuery = url.searchParams.get("q") || "";
 
 	try {
 		const movieIds = await getUserWatchedMovies(locals.user.id);
 		
-		// Get all watched movies for stats calculation
-		let allWatchedMovies: Movie[] = [];
 		if (movieIds.length > 0) {
-			allWatchedMovies = await getMoviesByIds(movieIds);
+			watchedMovies = await getMoviesByIds(movieIds);
 			
 			// Calculate stats
-			stats.moviesWatched = allWatchedMovies.length;
+			stats.moviesWatched = watchedMovies.length;
 			
 			// Calculate total hours and minutes (estimated using 110 minutes average)
-			const totalMinutes = allWatchedMovies.reduce((acc, movie) => {
+			const totalMinutes = watchedMovies.reduce((acc, movie) => {
 				// Estimate runtime as 110 minutes average if not available
 				return acc + (110);
 			}, 0);
@@ -42,7 +39,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			
 			// Calculate favorite genre
 			const genreCount = new Map<number, number>();
-			for (const movie of allWatchedMovies) {
+			for (const movie of watchedMovies) {
 				// Handle both genre_ids and genres formats
 				const genres = (movie as any).genres || movie.genre_ids || [];
 				const genreIds = Array.isArray(genres) && genres.length > 0 && typeof genres[0] === 'object'
@@ -86,18 +83,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				stats.favoriteGenre = genreMap[topGenreId] || "Unknown";
 			}
 		}
-		
-		// Filter by search query
-		let filteredIds = movieIds;
-		if (searchQuery && allWatchedMovies.length > 0) {
-			const matchingMovies = allWatchedMovies.filter(m =>
-				m.title.toLowerCase().includes(searchQuery.toLowerCase())
-			);
-			filteredIds = matchingMovies.map(m => m.id);
-			watchedMovies = matchingMovies;
-		} else {
-			watchedMovies = allWatchedMovies;
-		}
 	} catch (err) {
 		console.error("Failed to fetch watched movies:", err);
 		error = "Failed to load watched movies";
@@ -107,7 +92,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		watchedMovies,
 		error,
 		user: locals.user,
-		searchQuery,
 		stats
 	};
 };
