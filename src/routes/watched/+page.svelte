@@ -5,6 +5,12 @@
 
 	export let data: PageData;
 
+	let searchQuery = "";
+
+	$: filteredMovies = data.watchedMovies.filter(movie =>
+		movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+	);
+
 	function getImageUrl(path: string | null): string {
 		if (!path) return "https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?w=400&h=600&fit=crop";
 		return `https://image.tmdb.org/t/p/w500${path}`;
@@ -23,6 +29,17 @@
 			<h1>Watched Movies</h1>
 			<p class="lede">Keep track of all the movies you've watched.</p>
 		</div>
+		{#if data.watchedMovies.length > 0}
+			<div class="search-container">
+				<input
+					type="search"
+					placeholder="Search your movies..."
+					bind:value={searchQuery}
+					class="search-input"
+					aria-label="Search watched movies"
+				/>
+			</div>
+		{/if}
 	</header>
 
 	{#if data.error}
@@ -52,7 +69,7 @@
 		</section>
 
 		<section class="grid" aria-live="polite">
-			{#each data.watchedMovies as movie}
+			{#each filteredMovies as movie}
 			<article class="card">
 				<a href="/movie/{movie.id}" class="card-poster">
 					<img src={getImageUrl(movie.poster_path)} alt={movie.title} />
