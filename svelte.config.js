@@ -16,9 +16,6 @@ const config = {
 			precompress: false,
 			envPrefix: '',
 		}),
-		paths: {
-			base: process.env.NODE_ENV === 'production' ? '/movie-rec' : ''
-		},
 		// Allow POSTs from a different origin (e.g., when front-end and back-end domains differ)
 		csrf: {
 			checkOrigin: false
