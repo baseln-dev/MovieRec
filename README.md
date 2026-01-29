@@ -12,7 +12,7 @@ MovieRec is a SvelteKit web app that connects to The Movie Database (TMDB) API t
 **Backend / Server**
 - SvelteKit server routes
 - Node.js
-- PostgreSQL (via `pg`)
+- PostgreSQL
 
 **Auth & security**
 - Email + password authentication
@@ -23,7 +23,7 @@ MovieRec is a SvelteKit web app that connects to The Movie Database (TMDB) API t
 - TMDB API for movie data
 - Resend for transactional email
 
-## How the website is built (process)
+## How the website was built
 
 1. **Project setup**
 	- Bootstrapped with SvelteKit and Vite.
@@ -48,7 +48,7 @@ MovieRec is a SvelteKit web app that connects to The Movie Database (TMDB) API t
 
 ## Environment variables
 
-Create a `.env` file at the project root and provide:
+Created a `.env` file at the project root and provided:
 
 ```
 DATABASE_URL=
@@ -59,7 +59,7 @@ ENCRYPTION_KEY=
 
 ## Development
 
-Install dependencies and run locally:
+Installed dependencies and run locally:
 
 ```
 npm install
