@@ -1,6 +1,6 @@
-# MovieRec
+# Movie Recommendation Website
 
-MovieRec is a SvelteKit web app that connects to The Movie Database (TMDB) API to help users track watched movies and discover personalized recommendations.
+This is a SvelteKit web app that connects to The Movie Database (TMDB) API to help users track watched movies and discover personalized recommendations.
 
 ## Tools & technologies
 
